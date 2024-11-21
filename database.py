@@ -1,37 +1,43 @@
+import os
 import sqlite3
 import bcrypt
+from werkzeug.security import generate_password_hash
 
 def create_connection():
-    conn = sqlite3.connect('wildlife_rescue.db')
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(base_dir, 'wildlife_rescue.db')
+    print(f"Database path: {db_path}")
+    conn = sqlite3.connect(db_path)
     return conn
 
 def init_db():
-    conn = create_connection()
-    cursor = conn.cursor()
-
-    # Create the Users table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS Users (
-            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT NOT NULL UNIQUE,
-            password_hash TEXT NOT NULL,
-            organization TEXT NOT NULL,
-            federal_permit_number TEXT,
-            state_permit_number TEXT,
-            contact_person_name TEXT NOT NULL,
-            country TEXT,
-            mailing_address TEXT NOT NULL,
-            city TEXT NOT NULL,
-            state TEXT,
-            postal_code TEXT,
-            phone_number TEXT NOT NULL,
-            website_url TEXT,
-            time_zone TEXT
-        )
-    ''')
-
-    conn.commit()
-    conn.close()
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS Users (
+                user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                organization TEXT NOT NULL,
+                federal_permit_number TEXT,
+                state_permit_number TEXT,
+                contact_person_name TEXT NOT NULL,
+                country TEXT,
+                mailing_address TEXT NOT NULL,
+                city TEXT NOT NULL,
+                state TEXT,
+                postal_code TEXT,
+                phone_number TEXT NOT NULL,
+                website_url TEXT,
+                time_zone TEXT
+            )
+        ''')
+        conn.commit()
+    except Exception as e:
+        print(f"An error occurred while initializing the database: {e}")
+    finally:
+        conn.close()
 
 def get_user_by_email(email):
     conn = create_connection()
@@ -79,14 +85,6 @@ def add_user(form_data):
     ))
     conn.commit()
     conn.close()
-
-def get_user_by_email(email):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM Users WHERE email = ?', (email,))
-    user = cursor.fetchone()
-    conn.close()
-    return user
 
 def add_patient_to_db(patient_data):
     conn = create_connection()

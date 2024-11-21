@@ -1,12 +1,13 @@
+import bcrypt
 from flask import Flask, render_template, request, redirect, url_for, flash
-from database import create_connection, init_db, add_user, get_user_by_email, add_patient_to_db
-from werkzeug.security import generate_password_hash
+from database import init_db, add_user, get_user_by_email, add_patient_to_db
 from forms import RegistrationForm, NewPatientForm
 from flask_bootstrap import Bootstrap5
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 bootstrap = Bootstrap5(app)
+
+init_db()
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -22,7 +23,7 @@ def register():
             return render_template('register.html', form=form)
         else:
             # Hash the password
-            password_hash = generate_password_hash(form.password.data)
+            password_hash = bcrypt.hashpw(form.password.data.encode('utf-8'), bcrypt.gensalt())
 
             # Form data for insertion
             form_data = {
@@ -104,8 +105,11 @@ def addpatient():
 
     return render_template('addpatient.html', form=form)
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    # Your login logic here
+    return render_template('index.html')
 
 
 if __name__ == '__main__':
-    init_db()
     app.run()
